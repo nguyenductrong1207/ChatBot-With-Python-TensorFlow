@@ -1,20 +1,20 @@
-from flask import Flask, render_template, request, jsonify
 import random
 import json
 import pickle
 import numpy as np
+
 import nltk
 from nltk.stem import WordNetLemmatizer
 from keras.models import load_model
 
-app = Flask(__name__)
-
+# Load the pre-trained model and other necessary files
 lemmatizer = WordNetLemmatizer()
 intents = json.loads(open('intents.json').read())
 
 words = pickle.load(open('words.pkl', 'rb'))
 classes = pickle.load(open('classes.pkl', 'rb'))
 model = load_model('chatbot_model.h5')
+
 
 def clean_up_sentence(sentence):
     sentence_words = nltk.word_tokenize(sentence)
@@ -51,16 +51,11 @@ def get_response(intents_list, intents_json):
             break
     return result
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+print("GO! Bot is running!")
 
-@app.route('/chat', methods=['POST'])
-def chat():
-    message = request.json['message']
-    ints = predict_class(message)
-    res = get_response(ints, intents)
-    return jsonify({'response': res})
-
-if __name__ == '__main__':
-    app.run(debug=True)
+while True:
+    message = input("")
+    ints = predict_class (message)
+    res = get_response (ints, intents)
+    print (res)
+    
