@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="chat-icon" id="chat-icon" onclick="toggleChat()">
+        <img src="{% static 'images/chatbot.jpg' %}" alt="Messenger Icon">
+    </div>
+    <div class="chat-container" id="chat-container">
+        <div class="chat-header">
+            <img src="{% static 'images/avatar.jpg' %}" alt="Avatar">
+            <div class="chat-title">Duc Trong WebChat</div>
+            <button type="button" class="close" aria-label="Close" onclick="toggleChat()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="chat-body" id="chat-body">
+            <!-- Chat messages will be appended here -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Type a message..." oninput="toggleButton()">
+            <button id="send-btn" onclick="sendMessage()" disabled>Send</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleChat() {
+            const chatContainer = document.getElementById('chat-container');
+            chatContainer.classList.toggle('hidden');
+        }
+
+        function toggleButton() {
+            const userInput = document.getElementById('user-input').value;
+            document.getElementById('send-btn').disabled = userInput.trim() === '';
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('user-input').value;
+            if (userInput.trim() === '') return;
+
+            const chatBody = document.getElementById('chat-body');
+
+            // Display user message
+            const userMessage = document.createElement('div');
+            userMessage.classList.add('chat-message', 'user-message');
+            userMessage.innerHTML = `<img src="{% static 'images/avatar.jpg' %}" class="avatar"> <span>${userInput}</span>`;
+            chatBody.appendChild(userMessage);
+
+            // Scroll to the bottom
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Clear input
+            document.getElementById('user-input').value = '';
+            document.getElementById('send-btn').disabled = true;
+
+            // Send message to the server 
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userInput })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Display bot response 
+                    const botMessage = document.createElement('div');
+                    botMessage.classList.add('chat-message', 'bot-message');
+                    botMessage.innerHTML = `<img src="{% static 'images/chatbot.jpg' %}" class="avatar"> <span>${data.response}</span>`;
+                    chatBody.appendChild(botMessage);
+
+                    // Scroll to the bottom
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                })
+                .catch(error => console.error('Error:', error));;
+        }
+
+        // Enable sending message on Enter key press 
+        document.getElementById('user-input').addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+
+</html>
